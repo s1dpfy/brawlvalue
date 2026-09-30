@@ -1,29 +1,48 @@
+import os
 from pathlib import Path
 import firebase_admin
 from firebase_admin import credentials, firestore
 
-# 루트 디렉토리 및 키 파일 경로
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
-KEY_PATH = BASE_DIR / "serviceAccountKey.json"
 
+# 비밀 키 탐색 우선순위
+# 1. Render 클라우드 Secret Files 마운트 경로 (/etc/secrets/serviceAccountKey.json)
+# 2. 환경변수 지정 경로 (FIREBASE_KEY_PATH 또는 GOOGLE_APPLICATION_CREDENTIALS)
+# 3. 로컬 프로젝트 루트 경로
+CANDIDATE_PATHS = [
+    Path("/etc/secrets/serviceAccountKey.json"),
+    Path(os.getenv("FIREBASE_KEY_PATH", "")),
+    Path(os.getenv("GOOGLE_APPLICATION_CREDENTIALS", "")),
+    BASE_DIR / "serviceAccountKey.json",
+    Path("serviceAccountKey.json"),
+]
+
+
+def resolve_key_path() -> Path | None:
+    for path in CANDIDATE_PATHS:
+        if str(path) and path.exists() and path.is_file():
+            return path
+    return None
+
+
+KEY_PATH = resolve_key_path()
 db = None
 
-if KEY_PATH.exists():
+if KEY_PATH:
     try:
-        # 중복 초기화 방지
         if not firebase_admin._apps:
             cred = credentials.Certificate(str(KEY_PATH))
             firebase_admin.initialize_app(cred)
         db = firestore.client()
-        print("[Firebase] Firestore 연결 완료")
+        print(f"[Firebase] Firestore 연결 완료 (Key 경로: {KEY_PATH})")
     except Exception as e:
         print(f"[Firebase 초기화 실패] {e}")
 else:
-    print("[경고] serviceAccountKey.json 파일이 없습니다. 랭킹 기능이 비활성화됩니다.")
+    print("[경고] serviceAccountKey.json 키 파일을 찾을 수 없습니다. (확인 경로: /etc/secrets/, 프로젝트 루트)")
 
 
 def save_player_ranking(clean_tag: str, player: dict, analysis: dict):
-    """서버에서 검증된 점수만 안전하게 DB에 저장"""
+    """서버에서 검증된 유저 가치 데이터를 Firestore에 저장"""
     if not db:
         return
     try:
@@ -43,7 +62,7 @@ def save_player_ranking(clean_tag: str, player: dict, analysis: dict):
 
 
 def get_top_rankings(limit: int = None):
-    """실시간 전체 랭킹 조회 (limit가 None이면 전체 반환)"""
+    """실시간 랭킹 전체 조회"""
     if not db:
         return []
     try:
