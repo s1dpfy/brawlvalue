@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BRAWL VALUE | 브롤스타즈 계정 가치 분석 & 종합 리더보드</title>
+  
+  <!-- Google Fonts: Lilita One (영문/수치) + Jua (동글동글 볼드 한글) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Jua&family=Lilita+One&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            brawl: ['"Lilita One"', '"Jua"', 'cursive'],
+            sans: ['"Jua"', 'sans-serif'],
+          },
+          colors: {
+            brawl: {
+              dark: '#080b11',
+              card: '#121722',
+              cardInner: '#0b0f17',
+              border: '#232b3c',
+              yellow: '#ffce00',
+              blue: '#2b7fff',
+              red: '#ff3b5c',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* 브롤스타즈 스타일 입체 버튼 */
+    .brawl-btn-yellow {
+      background: #ffce00;
+      box-shadow: 0 5px 0 #b38600;
+      transition: all 0.1s ease;
+    }
+    .brawl-btn-yellow:active {
+      transform: translateY(3px);
+      box-shadow: 0 2px 0 #b38600;
+    }
+    .brawl-btn-blue {
+      background: #2b7fff;
+      box-shadow: 0 4px 0 #1a5ec4;
+      transition: all 0.1s ease;
+    }
+    .brawl-btn-blue:active {
+      transform: translateY(2px);
+      box-shadow: 0 1px 0 #1a5ec4;
+    }
+    .brawl-card {
+      background: #121722;
+      border: 2px solid #232b3c;
+      box-shadow: 0 8px 0 #05070a;
+    }
+    .stat-box {
+      background: #0b0f17;
+      border: 1px solid #1c2433;
+    }
+    /* 커스텀 스크롤바 */
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0b0f17;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #232b3c;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #ffce00;
+    }
+  </style>
+</head>
+<body class="bg-brawl-dark text-slate-100 font-sans min-h-screen py-8 px-4 sm:px-6 selection:bg-brawl-yellow selection:text-black">
+  <div class="max-w-4xl mx-auto">
+    
+    <!-- 네비게이션 헤더 -->
+    <header class="flex items-center justify-between mb-8 pb-4 border-b border-brawl-border">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-brawl-yellow flex items-center justify-center font-brawl text-2xl text-black shadow-[0_3px_0_#b38600]">
+          B
+        </div>
+        <div>
+          <h1 class="font-brawl text-2xl tracking-wide text-white flex items-center gap-1.5">
+            BRAWL<span class="text-brawl-yellow">VALUE</span>
+          </h1>
+          <p class="text-xs text-slate-400">계정 가치 분석 및 실시간 랭킹 시스템</p>
+        </div>
+      </div>
+
+      <!-- 상단 랭킹 보기 버튼 -->
+      <button
+        type="button"
+        id="top-ranking-btn"
+        class="brawl-btn-blue text-white px-4 py-2 rounded-xl font-brawl text-sm tracking-wider flex items-center gap-1.5 cursor-pointer"
+      >
+        <span>LEADERBOARD</span>
+        <span class="text-xs font-sans text-sky-200 bg-black/25 px-1.5 py-0.5 rounded">순위표</span>
+      </button>
+    </header>
+
+    <!-- 메인 타이틀 배너 -->
+    <div class="text-center mb-8">
+      <h2 class="font-brawl text-4xl sm:text-6xl text-white tracking-wide">
+        내 브롤 계정의 <span class="text-brawl-yellow">진짜 가치</span>는?
+      </h2>
+      <p class="text-sm sm:text-base text-slate-400 mt-2 max-w-xl mx-auto">
+        플레이어 태그 한 줄로 총 투입 재화와 전투 전적을 정밀 분석하여 <b>추정 원화 가치</b>와 <b>전국 상위 등급</b>을 산출합니다.
+      </p>
+    </div>
+
+    <!-- 검색 바 영역 -->
+    <section class="mb-10 max-w-2xl mx-auto">
+      <form id="search-form" class="flex flex-col sm:flex-row gap-2">
+        <div class="relative flex-1">
+          <span class="absolute left-4 top-1/2 -translate-y-1/2 font-brawl text-2xl text-slate-500">#</span>
+          <input
+            id="tag-input"
+            type="text"
+            placeholder="플레이어 태그 입력"
+            class="w-full bg-brawl-card border-2 border-brawl-border focus:border-brawl-yellow rounded-xl py-3.5 pl-11 pr-4 text-white font-brawl text-xl tracking-wider uppercase placeholder:normal-case placeholder:font-sans placeholder:text-sm placeholder:text-slate-500 outline-none transition-all shadow-inner"
+            required
+            autocomplete="off"
+          />
+        </div>
+        <button
+          type="submit"
+          id="submit-btn"
+          class="brawl-btn-yellow text-slate-950 font-brawl text-xl px-9 py-3.5 rounded-xl uppercase flex items-center justify-center shrink-0 cursor-pointer"
+        >
+          <span id="btn-text">가치 측정</span>
+        </button>
+      </form>
+      
+      <!-- 서브 컨트롤: 태그 확인법 / 랭킹 보기 / 샘플 프리셋 -->
+      <div class="flex flex-wrap items-center justify-between gap-2 mt-3 px-1">
+        <div class="flex items-center gap-2">
+          <button
+            type="button"
+            id="open-guide-btn"
+            class="text-xs text-brawl-yellow hover:underline font-bold bg-brawl-card px-2.5 py-1.5 rounded-lg border border-brawl-border cursor-pointer"
+          >
+            태그 확인 방법
+          </button>
+          <button
+            type="button"
+            id="sub-ranking-btn"
+            class="text-xs text-sky-400 hover:underline font-bold bg-brawl-card px-2.5 py-1.5 rounded-lg border border-brawl-border cursor-pointer"
+          >
+            실시간 전체 랭킹
+          </button>
+        </div>
+
+        <div class="flex items-center gap-1.5 text-xs text-slate-400">
+          <span class="font-bold text-slate-500">추천 검색:</span>
+          <button type="button" onclick="quickFill('RY8GYVUPY')" class="bg-brawl-card px-2 py-0.5 rounded border border-brawl-border hover:border-brawl-yellow text-slate-300 font-brawl">#RY8GYVUPY (개발자계정)</button>
+        </div>
+      </div>
+
+      <p id="error-msg" class="text-brawl-red text-center text-sm mt-3 hidden font-bold"></p>
+    </section>
+
+    <!-- 로딩 스켈레톤 -->
+    <div id="loading-state" class="hidden text-center py-12">
+      <div class="inline-block w-12 h-12 border-4 border-brawl-border border-t-brawl-yellow rounded-full animate-spin mb-4"></div>
+      <p class="font-brawl text-xl text-slate-300">인게임 데이터 분석 중...</p>
+    </div>
+
+    <!-- 대시보드 결과 영역 -->
+    <main id="result-container" class="hidden space-y-6 mb-12">
+      
+      <!-- 상단 요약 카드 -->
+      <section class="brawl-card rounded-2xl p-6 sm:p-8 relative">
+        <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
+          <div class="flex items-center gap-4">
+            <div class="w-18 h-18 sm:w-20 sm:h-20 rounded-2xl bg-brawl-blue border-2 border-white/20 shadow-[0_4px_0_#1a5ec4] flex items-center justify-center font-brawl text-4xl text-white shrink-0">
+              <span id="player-initial">B</span>
+            </div>
+            <div>
+              <div class="flex items-center gap-2 text-xs text-slate-400">
+                <span id="player-club" class="font-bold">소속 클럽 없음</span>
+                <span>/</span>
+                <span id="player-tag-display" class="font-brawl text-slate-400 tracking-wider">#TAG</span>
+              </div>
+              <h2 id="player-name" class="font-brawl text-3xl sm:text-5xl text-white tracking-wide mt-1">PLAYER</h2>
+            </div>
+          </div>
+
+          <!-- 티어 뱃지 & 종합 점수 -->
+          <div class="flex flex-wrap items-center gap-4 w-full lg:w-auto justify-between lg:justify-end border-t lg:border-t-0 pt-4 lg:pt-0 border-brawl-border">
+            <div id="tier-badge-container" class="px-5 py-3 rounded-2xl border-2 flex flex-col items-center justify-center min-w-[140px]">
+              <span id="percentile-text" class="text-[11px] font-bold tracking-tight opacity-90"></span>
+              <span id="tier-name" class="font-brawl text-2xl sm:text-3xl leading-none mt-1">TIER</span>
+              <span id="tier-kr-name" class="text-xs font-bold opacity-80 mt-0.5"></span>
+            </div>
+            <div class="text-right">
+              <span class="text-xs text-slate-400 uppercase tracking-wider block">종합 계정 가치 점수</span>
+              <span id="total-score" class="font-brawl text-4xl sm:text-5xl text-brawl-yellow leading-none">0</span>
+              <span class="font-brawl text-base text-slate-500 ml-1">PTS</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 가치 환산 배너 -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-6 pt-6 border-t border-brawl-border">
+          <div class="stat-box p-4 rounded-xl border border-brawl-border">
+            <span class="text-xs text-slate-400 block">추정 인게임 골드 가치</span>
+            <span id="gold-val" class="font-brawl text-2xl text-amber-300 mt-1 block">0 G</span>
+          </div>
+          <div class="stat-box p-4 rounded-xl border border-emerald-500/40 bg-emerald-950/20">
+            <span class="text-xs text-emerald-400 font-bold block">육성 투입 환산 가치 (원화)</span>
+            <span id="krw-val" class="font-brawl text-2xl sm:text-3xl text-emerald-300 mt-1 block">0 원</span>
+          </div>
+          <div class="stat-box p-4 rounded-xl border border-brawl-border">
+            <span class="text-xs text-slate-400 block">전투 vs 육성 점수 밸런스</span>
+            <span id="score-ratio" class="font-brawl text-2xl text-slate-200 mt-1 block">50% : 50%</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- 세부 스탯 그리드 -->
+      <section class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="brawl-card rounded-2xl p-5">
+          <div class="flex items-center justify-between mb-4 border-b border-brawl-border pb-3">
+            <span class="font-brawl text-lg text-brawl-blue tracking-wide">COMBAT RECORD</span>
+            <span class="text-xs text-slate-400">전투 및 승리 전적</span>
+          </div>
+          <div class="space-y-3 text-sm">
+            <div class="flex justify-between items-center py-1.5 border-b border-brawl-border/50">
+              <span class="text-slate-400">현재 트로피</span>
+              <span id="stat-trophies" class="font-brawl text-lg text-white">0</span>
+            </div>
+            <div class="flex justify-between items-center py-1.5 border-b border-brawl-border/50">
+              <span class="text-slate-400">최고 트로피 기록</span>
+              <span id="stat-highest" class="font-brawl text-lg text-slate-300">0</span>
+            </div>
+            <div class="flex justify-between items-center py-1.5 border-b border-brawl-border/50">
+              <span class="text-slate-400">3대3 모드 승리</span>
+              <span id="stat-3v3" class="font-brawl text-lg text-slate-300">0 회</span>
+            </div>
+            <div class="flex justify-between items-center py-1.5">
+              <span class="text-slate-400">쇼다운 (솔로 / 듀오)</span>
+              <span id="stat-showdown" class="font-brawl text-lg text-slate-300">0 / 0 회</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="brawl-card rounded-2xl p-5">
+          <div class="flex items-center justify-between mb-4 border-b border-brawl-border pb-3">
+            <span class="font-brawl text-lg text-emerald-400 tracking-wide">PROGRESSION</span>
+            <span class="text-xs text-slate-400">브롤러 육성 스펙</span>
+          </div>
+          <div class="space-y-3 text-sm">
+            <div class="flex justify-between items-center py-1.5 border-b border-brawl-border/50">
+              <span class="text-slate-400">보유 브롤러</span>
+              <span id="stat-brawler-count" class="font-brawl text-lg text-white">0 / 107 명</span>
+            </div>
+            <div class="flex justify-between items-center py-1.5 border-b border-brawl-border/50">
+              <span class="text-slate-400">만렙 (Power 11) 브롤러</span>
+              <span id="stat-max-brawlers" class="font-brawl text-lg text-emerald-400">0 명</span>
+            </div>
+            <div class="flex justify-between items-center py-1.5 border-b border-brawl-border/50">
+              <span class="text-slate-400">스타파워 / 가젯 장착 합</span>
+              <span id="stat-sp-gadget" class="font-brawl text-lg text-slate-300">0개 / 0개</span>
+            </div>
+            <div class="flex justify-between items-center py-1.5">
+              <span class="text-slate-400">장착 기어 (Gears) 총합</span>
+              <span id="stat-gears" class="font-brawl text-lg text-slate-300">0 개</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 주력 브롤러 TOP 4 쇼케이스 -->
+      <section class="brawl-card rounded-2xl p-5">
+        <div class="flex items-center justify-between mb-4 border-b border-brawl-border pb-3">
+          <span class="font-brawl text-lg text-brawl-yellow tracking-wide">TOP 4 BRAWLERS</span>
+          <span class="text-xs text-slate-400">최고 트로피 순위</span>
+        </div>
+        <div id="top-brawlers-grid" class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <!-- JS 동적 렌더링 -->
+        </div>
+      </section>
+    </main>
+
+  </div>
+
+  <!-- [모달 1] 실시간 랭킹 순위표 팝업 Form (전체 명단) -->
+  <div id="ranking-modal" class="fixed inset-0 bg-black/85 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="brawl-card rounded-2xl max-w-2xl w-full p-6 relative max-h-[90vh] flex flex-col shadow-2xl">
+      
+      <!-- 모달 헤더 -->
+      <div class="flex justify-between items-center pb-4 border-b border-brawl-border">
+        <div>
+          <h3 class="font-brawl text-2xl text-brawl-yellow flex items-center gap-2">
+            <span>BRAWL VALUE LEADERBOARD</span>
+            <span id="ranking-total-badge" class="text-xs font-sans text-sky-300 bg-sky-950/60 px-2 py-0.5 rounded border border-sky-600/40">
+              TOTAL 0
+            </span>
+          </h3>
+          <p class="text-xs text-slate-400 mt-0.5">등록된 모든 참가자의 실시간 가치 순위 명예의 전당</p>
+        </div>
+        <button id="close-ranking-btn" class="text-slate-400 hover:text-white font-brawl text-3xl cursor-pointer p-1">&times;</button>
+      </div>
+
+      <!-- 리더보드 테이블 본문 (전체 명단 무제한 스크롤) -->
+      <div class="overflow-y-auto my-4 pr-1 max-h-[65vh]">
+        <table class="w-full text-left text-sm">
+          <thead>
+            <tr class="text-[11px] uppercase tracking-wider text-slate-400 border-b border-brawl-border/60 sticky top-0 bg-brawl-card z-10">
+              <th class="py-2.5 px-3">순위</th>
+              <th class="py-2.5 px-3">플레이어</th>
+              <th class="py-2.5 px-3">티어</th>
+              <th class="py-2.5 px-3 text-right">트로피</th>
+              <th class="py-2.5 px-3 text-right">계정 가치 점수</th>
+            </tr>
+          </thead>
+          <tbody id="leaderboard-body" class="divide-y divide-brawl-border/30">
+            <tr>
+              <td colspan="5" class="py-8 text-center text-slate-500 font-brawl">
+                랭킹을 불러오는 중...
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- 모달 풋터 안내 -->
+      <div class="pt-3 border-t border-brawl-border flex justify-between items-center text-xs text-slate-500">
+        <span>* 플레이어를 클릭하면 해당 계정 분석 결과가 즉시 열립니다.</span>
+        <button
+          type="button"
+          onclick="fetchLeaderboard()"
+          class="text-xs font-bold text-slate-400 hover:text-brawl-yellow cursor-pointer underline"
+        >
+          새로고침
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- [모달 2] 플레이어 태그 확인 방법 팝업 Form -->
+  <div id="guide-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="brawl-card rounded-2xl max-w-md w-full p-6 relative shadow-2xl">
+      <div class="flex justify-between items-center mb-4 pb-3 border-b border-brawl-border">
+        <h4 class="font-brawl text-xl text-brawl-yellow">내 플레이어 태그 확인 방법</h4>
+        <button id="close-guide-btn" class="text-slate-400 hover:text-white font-brawl text-2xl cursor-pointer">&times;</button>
+      </div>
+
+      <div class="space-y-3 text-sm">
+        <div class="stat-box p-3 rounded-xl border border-brawl-border">
+          <span class="font-brawl text-brawl-blue text-sm block">STEP 1</span>
+          <p class="text-slate-200 mt-1">브롤스타즈 로비 화면 좌측 상단 프로필 아이콘을 누릅니다.</p>
+        </div>
+
+        <div class="stat-box p-3 rounded-xl border border-brawl-border">
+          <span class="font-brawl text-brawl-blue text-sm block">STEP 2</span>
+          <p class="text-slate-200 mt-1">내 프로필 사진 바로 아래에 있는 #으로 시작하는 코드를 확인합니다. (예: #2PP98L)</p>
+        </div>
+      <button
+        id="confirm-guide-btn"
+        class="w-full mt-5 brawl-btn-yellow text-slate-950 font-brawl text-base py-3 rounded-xl uppercase cursor-pointer"
+      >
+        확인 완료
+      </button>
+    </div>
+  </div>
+
+  <script>
+    const form = document.getElementById('search-form');
+    const input = document.getElementById('tag-input');
+    const btn = document.getElementById('submit-btn');
+    const btnText = document.getElementById('btn-text');
+    const errorMsg = document.getElementById('error-msg');
+    const loadingState = document.getElementById('loading-state');
+    const resultContainer = document.getElementById('result-container');
+
+    // 모달 DOM
+    const rankingModal = document.getElementById('ranking-modal');
+    const topRankingBtn = document.getElementById('top-ranking-btn');
+    const subRankingBtn = document.getElementById('sub-ranking-btn');
+    const closeRankingBtn = document.getElementById('close-ranking-btn');
+
+    const guideModal = document.getElementById('guide-modal');
+    const openGuideBtn = document.getElementById('open-guide-btn');
+    const closeGuideBtn = document.getElementById('close-guide-btn');
+    const confirmGuideBtn = document.getElementById('confirm-guide-btn');
+
+    // 랭킹 모달 열기/닫기
+    function openRanking() {
+      rankingModal.classList.remove('hidden');
+      fetchLeaderboard();
+    }
+    function closeRanking() {
+      rankingModal.classList.add('hidden');
+    }
+
+    topRankingBtn.addEventListener('click', openRanking);
+    subRankingBtn.addEventListener('click', openRanking);
+    closeRankingBtn.addEventListener('click', closeRanking);
+
+    // 가이드 모달 열기/닫기
+    openGuideBtn.addEventListener('click', () => guideModal.classList.remove('hidden'));
+    closeGuideBtn.addEventListener('click', () => guideModal.classList.add('hidden'));
+    confirmGuideBtn.addEventListener('click', () => guideModal.classList.add('hidden'));
+
+    // 바깥 배경 클릭 시 모달 닫기
+    window.addEventListener('click', (e) => {
+      if (e.target === rankingModal) closeRanking();
+      if (e.target === guideModal) guideModal.classList.add('hidden');
+    });
+
+    // ESC 키로 모달 닫기
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closeRanking();
+        guideModal.classList.add('hidden');
+      }
+    });
+
+    function quickFill(tag) {
+      input.value = tag;
+      closeRanking();
+      triggerSearch(tag);
+    }
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      triggerSearch(input.value);
+    });
+
+    // 1. 분석 API 호출 (서버가 계산하고 DB에 자동 반영)
+    async function triggerSearch(rawTag) {
+      const cleanTag = rawTag.replace('#', '').trim().toUpperCase();
+      if (!cleanTag) return;
+
+      errorMsg.classList.add('hidden');
+      resultContainer.classList.add('hidden');
+      loadingState.classList.remove('hidden');
+      btn.disabled = true;
+      btnText.textContent = "분석 중...";
+
+      try {
+        const res = await fetch(`/api/player/${encodeURIComponent(cleanTag)}`);
+        const json = await res.json();
+
+        if (!res.ok) {
+          throw new Error(json.detail || "플레이어를 찾을 수 없습니다.");
+        }
+
+        renderDashboard(json);
+      } catch (err) {
+        errorMsg.textContent = err.message;
+        errorMsg.classList.remove('hidden');
+      } finally {
+        loadingState.classList.add('hidden');
+        btn.disabled = false;
+        btnText.textContent = "가치 측정";
+      }
+    }
+
+    // 2. 전체 랭킹 데이터 로드
+    async function fetchLeaderboard() {
+      try {
+        const res = await fetch('/api/ranking');
+        if (!res.ok) return;
+        const list = await res.json();
+        const tbody = document.getElementById('leaderboard-body');
+        const totalBadge = document.getElementById('ranking-total-badge');
+
+        if (!Array.isArray(list) || list.length === 0) {
+          if (totalBadge) totalBadge.textContent = "TOTAL 0";
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="5" class="py-8 text-center text-slate-500 font-brawl">
+                등록된 참가자가 없습니다. 첫 번째로 가치를 측정해 보세요!
+              </td>
+            </tr>`;
+          return;
+        }
+
+        if (totalBadge) totalBadge.textContent = `TOTAL ${list.length} PLAYERS`;
+
+        let html = "";
+        list.forEach((d, idx) => {
+          const rank = idx + 1;
+          let rankBadge = `<span class="font-brawl text-slate-400 text-sm px-2 py-0.5 rounded bg-brawl-card">${rank}</span>`;
+          if (rank === 1) {
+            rankBadge = `<span class="font-brawl text-slate-950 text-xs px-2.5 py-0.5 rounded bg-brawl-yellow font-black shadow-[0_2px_0_#b38600]">1ST</span>`;
+          } else if (rank === 2) {
+            rankBadge = `<span class="font-brawl text-slate-950 text-xs px-2.5 py-0.5 rounded bg-slate-300 font-black shadow-[0_2px_0_#94a3b8]">2ND</span>`;
+          } else if (rank === 3) {
+            rankBadge = `<span class="font-brawl text-white text-xs px-2.5 py-0.5 rounded bg-amber-700 font-black shadow-[0_2px_0_#78350f]">3RD</span>`;
+          }
+
+          const rawTag = (d.tag || '').replace('#', '');
+
+          html += `
+            <tr class="hover:bg-brawl-card/60 transition cursor-pointer" onclick="quickFill('${rawTag}')">
+              <td class="py-3 px-3">${rankBadge}</td>
+              <td class="py-3 px-3">
+                <span class="font-brawl text-base text-white tracking-wide block leading-none">${d.name || 'PLAYER'}</span>
+                <span class="text-[11px] text-slate-500 font-mono">${d.tag || ''}</span>
+              </td>
+              <td class="py-3 px-3">
+                <span class="text-xs px-2 py-0.5 rounded font-brawl tracking-wider border ${d.tier_style || 'border-slate-700 text-slate-300'}">
+                  ${d.tier || 'RANKED'}
+                </span>
+              </td>
+              <td class="py-3 px-3 text-right font-brawl text-slate-300">${(d.trophies || 0).toLocaleString()}</td>
+              <td class="py-3 px-3 text-right font-brawl text-base text-brawl-yellow tracking-wide">${(d.score || 0).toLocaleString()}</td>
+            </tr>
+          `;
+        });
+
+        tbody.innerHTML = html;
+      } catch (err) {
+        console.error("랭킹 로드 실패:", err);
+      }
+    }
+
+    // 3. 분석 결과 렌더링
+    function renderDashboard({ player, analysis }) {
+      const b = analysis.breakdown;
+
+      document.getElementById('player-name').textContent = player.name;
+      document.getElementById('player-initial').textContent = player.name.charAt(0).toUpperCase();
+      document.getElementById('player-tag-display').textContent = player.tag;
+      document.getElementById('player-club').textContent = player.club?.name || '소속 클럽 없음';
+
+      const tierBadge = document.getElementById('tier-badge-container');
+      document.getElementById('tier-name').textContent = analysis.tier;
+      document.getElementById('tier-kr-name').textContent = analysis.tier_kr;
+      document.getElementById('percentile-text').textContent = analysis.percentile;
+      tierBadge.className = `px-5 py-3 rounded-2xl border-2 flex flex-col items-center justify-center min-w-[140px] ${analysis.tier_style}`;
+
+      document.getElementById('total-score').textContent = analysis.total_score.toLocaleString();
+      document.getElementById('gold-val').textContent = `≈ ${analysis.estimated_gold.toLocaleString()} G`;
+      document.getElementById('krw-val').textContent = `약 ${analysis.estimated_krw.toLocaleString()} 원`;
+
+      const battleRatio = Math.round((b.battle_total / analysis.total_score) * 100);
+      document.getElementById('score-ratio').textContent = `${battleRatio}% : ${100 - battleRatio}%`;
+
+      document.getElementById('stat-trophies').textContent = (player.trophies || 0).toLocaleString();
+      document.getElementById('stat-highest').textContent = (player.highestTrophies || 0).toLocaleString();
+      document.getElementById('stat-3v3').textContent = `${(player["3vs3Victories"] || 0).toLocaleString()} 회`;
+      document.getElementById('stat-showdown').textContent = `${(player.soloVictories || 0).toLocaleString()} / ${(player.duoVictories || 0).toLocaleString()} 회`;
+
+      document.getElementById('stat-brawler-count').textContent = `${b.brawler_count} / 107 명`;
+      document.getElementById('stat-max-brawlers').textContent = `${b.max_brawlers} 명`;
+      document.getElementById('stat-sp-gadget').textContent = `${b.sp_count}개 / ${b.gadget_count}개`;
+      document.getElementById('stat-gears').textContent = `${b.gear_count} 개`;
+
+      // 주력 브롤러 TOP 4 쇼케이스
+      const topBrawlers = [...(player.brawlers || [])]
+        .sort((x, y) => (y.trophies || 0) - (x.trophies || 0))
+        .slice(0, 4);
+
+      const grid = document.getElementById('top-brawlers-grid');
+      grid.innerHTML = "";
+
+      topBrawlers.forEach(br => {
+        const card = document.createElement('div');
+        card.className = "stat-box p-3.5 rounded-xl border border-brawl-border flex flex-col justify-between";
+        card.innerHTML = `
+          <div>
+            <div class="flex justify-between items-start mb-2">
+              <span class="font-brawl text-base text-white truncate max-w-[85px]">${br.name}</span>
+              <span class="text-xs px-2 py-0.5 rounded bg-brawl-border text-slate-300 font-bold">LV.${br.power}</span>
+            </div>
+          </div>
+          <div class="pt-2 border-t border-brawl-border/50 flex items-center justify-between">
+            <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">TROPHIES</span>
+            <span class="font-brawl text-base text-brawl-yellow">${(br.trophies || 0).toLocaleString()}</span>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+
+      resultContainer.classList.remove('hidden');
+    }
+  </script>
+</body>
+</html>
